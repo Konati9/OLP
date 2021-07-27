@@ -1,0 +1,4399 @@
+{
+	"info": {
+		"_postman_id": "2960de4d-b407-4448-9a38-b3c13f2b1d8e",
+		"name": "Patching Checks",
+		"description": "A complete set of tests to make sure that the Ecentric API can support all of the 3D Secure 2 scenarios.\r\n\r\n**Note** You can't run the tests via the collection runner as you might have to interact via the Visualizer.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Void Redirect",
+			"item": [
+				{
+					"name": "Add Card on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'PM' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>200</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"//pm.variables.set('OrderNumber', OrderNumber);\r",
+									"//console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>300</v1:Amount>\r\n            <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MyMerchantUserId</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Void Redirect Env1 and Env2",
+			"item": [
+				{
+					"name": "Add Card on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'RIS' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));\r",
+									"\r",
+									"//var jsonData = JSON.parse(OrderNumber);\r",
+									"//postman.setEnvironmentVariable(\"OrderNumber\", jsonData.OrderNumber);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>300</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.variables.get(OrderNumber);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>300</v1:Amount>\r\n            <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MyMerchantUserId</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Void Redirect Env2and Env1",
+			"item": [
+				{
+					"name": "Add Card on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'PM' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>200</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>YT678990988</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>Test01</v1:OrderNumber>\r\n            <v1:Amount>300</v1:Amount>\r\n            <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MyMerchantUserId</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Capture Redirect Env1 and Env2",
+			"item": [
+				{
+					"name": "Add Card on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"AddCardToken\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test('Token should be same as in add card', () => {\r",
+									"    pm.expect(Token).to.equal(env.pm.variables.get('AddCardToken'));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'RIS' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>1210</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Capture on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Capture UAT' );\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Authorize file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"\r",
+									"pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+									"\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+									"pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+									"    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Capture"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>{{Amount}}</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n            <Token>{{AddCardToken}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const moment = require('moment');",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");",
+									"pm.variables.set('OrderNumber', OrderNumber);",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [{{orderNumber}}]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Capture Redirect Copy 3",
+			"item": [
+				{
+					"name": "Add Card on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"AddCardToken\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});\r",
+									"\r",
+									"pm.test('Token should be same as in add card', () => {\r",
+									"    pm.expect(Token).to.equal(env.pm.variables.get('AddCardToken'));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'PM' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>{{Amount}}</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Capture on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Capture UAT' );\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Authorize file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"\r",
+									"pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+									"\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+									"pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+									"    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Capture"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>{{Amount}}</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n            <Token>{{AddCardToken}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const moment = require('moment');",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");",
+									"pm.variables.set('OrderNumber', OrderNumber);",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [{{orderNumber}}]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Capture Redirect Copy 2",
+			"item": [
+				{
+					"name": "Add Card on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MyCVV}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'PM' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>1159</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Capture on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Capture Devbox' );\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Authorize file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"\r",
+									"pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+									"\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+									"pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+									"    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Capture"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>LoadBalancer01</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>1159</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{LoadBalancer01</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MerchantUserID</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Capture Redirect Copy",
+			"item": [
+				{
+					"name": "Add Card on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Add Card on Env 1');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var Token = $('Token').text();\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"console.log('Generating a new Token: ' + Token );\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "AddCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{MyName}}</CardholderName>\r\n\t        <CardNumber>{{MyCard}}</CardNumber>\r\n\t        <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n\t        <SecurityCode>{{MyCVV}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Cards on Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List User Cards on Env 2');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"\r",
+									"pm.test('Expect at least one token', () => {\r",
+									"    pm.expect(Token).to.be.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authorize (token) Env 2",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Authorize (token) Env 2' );\r",
+									"\r",
+									"// transaction id\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"\r",
+									"// order number\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = 'ISR' + moment().format(\"YYMMDDHHmmSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									"pm.collectionVariables.set('AuthorizeTransactionID', pm.variables.get('TransactionID'));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Authorize"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>1159</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env2URL}}",
+							"host": [
+								"{{Env2URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Capture on Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Capture Devbox' );\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Authorize file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"\r",
+									"pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+									"\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+									"pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+									"    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Capture"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>1159</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Void Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Void (Env 1)' );\r",
+									"pm.variables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"const moment = require('moment');\r",
+									"OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"pm.variables.set('OrderNumber', OrderNumber);\r",
+									"console.log('Generating a new OrderNumber: ' + OrderNumber );"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"\r",
+									"pm.test('Transaction status is \\'Success\\'', () => {\r",
+									"    pm.expect(TransactionStatus).to.equal('Success');\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "text/xml; charset=utf-8"
+							},
+							{
+								"key": "SoapACTION",
+								"type": "text",
+								"value": "Void"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{AuthorizeTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{LoadBalancer01</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Card Env 1",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('Delete card' );\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "DeleteCard",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>{{MerchantID}}</MerchantID>\r\n         <MerchantUserID>{{MerchantUserID</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{Env1URL}}",
+							"host": [
+								"{{Env1URL}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Report",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var template = `\r",
+									"    <table bgcolor=\"#FFFFFF\">\r",
+									"        <tr>\r",
+									"            <th>Message Type</th>\r",
+									"            <th>Timestamp</th>\r",
+									"        </tr>\r",
+									"        {{#each transactions}}\r",
+									"            <tr>\r",
+									"                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+									"                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+									"            </tr>\r",
+									"        {{/each}}\r",
+									"    </table>\r",
+									"`;\r",
+									"\r",
+									"pm.visualizer.set(template, {\r",
+									"    // Pass the response body parsed as JSON as `data`\r",
+									"    transactions: pm.response.json().transactions\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ReportUrl}}/api/transaction",
+							"host": [
+								"{{ReportUrl}}"
+							],
+							"path": [
+								"api",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Please make sure that you first define these variables:\n\n- boom",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Custom Settings",
+							"// ---------------",
+							"",
+							"// Shared Request Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+							"pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+							"pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+							"pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+							"pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+							"pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+							"pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+							"pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+							"pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+							"",
+							"",
+							"// Secure3DLookup Settings",
+							"// -----------------------",
+							"",
+							"pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+							"pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+							"pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+							"",
+							"// Payment / Authorize Settings",
+							"// ----------------------------",
+							"",
+							"pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+							"pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+							"",
+							"// Report",
+							"",
+							"",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Parking",
+			"item": [
+				{
+					"name": "Secure3DLookup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Pre-request Script! \r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+									"if(MdStatus != '50') {\r",
+									"    const moment = require('moment');\r",
+									"    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+									"    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+									"    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+									"}\r",
+									"pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+									"pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var TransactionStatus = $('TransactionStatus').text();\r",
+									"var MdStatus = $('MdStatus').text();\r",
+									"var Enrolled = $('Enrolled').text();\r",
+									"\r",
+									"if(!MdStatus) {\r",
+									"    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+									"    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+									"        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+									"    });\r",
+									"    return;\r",
+									"}\r",
+									"\r",
+									"pm.collectionVariables.set('MdStatus', MdStatus);\r",
+									"pm.collectionVariables.unset('TxId');\r",
+									"pm.collectionVariables.unset('FetchCallback');\r",
+									"pm.collectionVariables.unset('MD');\r",
+									"pm.collectionVariables.unset('PreviousTransactionID');\r",
+									"\r",
+									"var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+									"if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+									"    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+									"        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+									"    });\r",
+									"}\r",
+									"var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+									"if(ExpectedEnrolled && Enrolled) {\r",
+									"    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+									"        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+									"    });\r",
+									"}\r",
+									"\r",
+									"switch(MdStatus) {\r",
+									"    case '0':\r",
+									"        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+									"        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+									"        break;\r",
+									"    case '1':\r",
+									"        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '4':\r",
+									"        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        break;\r",
+									"    case '5':\r",
+									"        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+									"        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+									"        break;\r",
+									"    case '9':\r",
+									"        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+									"        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+									"        var code = btoa($('RedirectToACSForm').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+									"            \" Then request a Payment or Authorize</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+									"        pm.collectionVariables.set('FetchCallback', true);\r",
+									"        break;\r",
+									"    case '50':\r",
+									"        var TxId = $('TxId').text();\r",
+									"        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+									"        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+									"        var code = btoa($('TDSMethodContent').text());\r",
+									"        var temp = \r",
+									"            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+									"            \"<form action='{{action}}' method='POST'>\" + \r",
+									"            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+									"            \"  <input type='submit' value='Run' />\" +\r",
+									"            \"</form>\";\r",
+									"        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+									"        pm.collectionVariables.unset('TxId');\r",
+									"        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+									"        break;\r",
+									"    default:\r",
+									"        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+									"        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+									"        break;\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "Secure3DLookup",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:Secure3DLookupRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Card>\r\n                <v1:CardholderName>{{CardholderName}}</v1:CardholderName>\r\n                <v1:CardNumber>{{CardNumber}}</v1:CardNumber>\r\n                <v1:ExpiryMonth>{{ExpiryMonth}}</v1:ExpiryMonth>\r\n                <v1:ExpiryYear>{{ExpiryYear}}</v1:ExpiryYear>\r\n                <v1:SecurityCode>{{CVV}}</v1:SecurityCode>\r\n            </v1:Card>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n            <v1:TermUrl>{{TermUrl}}</v1:TermUrl>\r\n            {{TxId}}\r\n        </v1:Secure3DLookupRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://003enterprise.ecentric.co.za/paymentgateway/v1",
+							"protocol": "https",
+							"host": [
+								"003enterprise",
+								"ecentric",
+								"co",
+								"za"
+							],
+							"path": [
+								"paymentgateway",
+								"v1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List user cards Devbox",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"console.log('List user cards Devbox' );"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//\r",
+									"// Welcome to the Tests!\r",
+									"// Only edit the Secure3DLookup file in the Template folder!\r",
+									"//\r",
+									"\r",
+									"const $ = cheerio.load(responseBody);\r",
+									"var Token = $('Token').text();\r",
+									"console.log('Tokens in responsebody: ' + Token );\r",
+									"\r",
+									"pm.test('Token is replicated to DevBox', () => {\r",
+									"    pm.expect(Token).to.not.contain(pm.collectionVariables.get(\"Token\"));\r",
+									"});\r",
+									"\r",
+									"//Even if the test fails we use the found token\r",
+									"pm.collectionVariables.set(\"Token\", Token);\r",
+									"return;\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "SOAPAction",
+								"value": "ListUserCards",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "text/xml;charset=UTF-8",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n      <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://192.168.3.57:444/PaymentGateway/V1",
+							"protocol": "http",
+							"host": [
+								"192",
+								"168",
+								"3",
+								"57"
+							],
+							"port": "444",
+							"path": [
+								"PaymentGateway",
+								"V1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Token",
+			"value": ""
+		},
+		{
+			"key": "AuthorizeTransactionID",
+			"value": ""
+		},
+		{
+			"key": "TransactionID",
+			"value": ""
+		},
+		{
+			"key": "PreviousTransactionID",
+			"value": ""
+		},
+		{
+			"key": "OrderNumber",
+			"value": ""
+		},
+		{
+			"key": "TxId",
+			"value": ""
+		},
+		{
+			"key": "AddCardToken",
+			"value": ""
+		}
+	]
+}
