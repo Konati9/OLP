@@ -1,0 +1,3413 @@
+{
+  "info": {
+    "_postman_id": "b623efe7-19e0-48c0-85b1-b8e27b46de9a",
+    "name": "SIT Automated testing Copy",
+    "description": "A complete set of tests to make sure that the Ecentric API can support all of the 3D Secure 2 scenarios.\r\n\r\n**Note** You can't run the tests via the collection runner as you might have to interact via the Visualizer.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Token based replication test",
+      "item": [
+        {
+          "name": "Add Card on Sit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Add Card on Sit' );"
+                ],
+                "type": "text/javascript",
+                "id": "9add04bc-d38a-44cd-906d-acb4df917623"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "console.log('Generating a new Token: ' + Token );\r",
+                  "\r",
+                  "pm.test('Transaction status is \\'Success\\'', () => {\r",
+                  "    pm.expect(TransactionStatus).to.equal('Success');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "ff1e0a07-24bc-4c52-9ddc-bbc52bc74b8d"
+              }
+            }
+          ],
+          "_postman_id": "3fb41e3e-6696-4429-90d4-9a0d7ca11449",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "AddCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t     <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>MasterCard Successful (3DSecure Registered)</CardholderName>\r\n\t        <CardNumber>5576788449392300</CardNumber>\r\n\t        <ExpiryMonth>10</ExpiryMonth>\r\n\t        <ExpiryYear>25</ExpiryYear>\r\n\t        <SecurityCode>123</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Sit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').first().text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "\r",
+                  "console.log('Listing the first token: ' + Token );\r",
+                  "\r",
+                  "pm.test('List card contains cards', () => {\r",
+                  "    pm.expect(responseBody).to.contain('CardholderName');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "81fe3a65-745f-4d15-ab39-170bc6e667ff"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('List user cards Sit' );\r",
+                  "\r",
+                  "//\r",
+                  "// Welcome to the Pre-request Script! \r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript",
+                "id": "fb8562bb-a8a3-4e33-a5f2-c52bb0a0829e"
+              }
+            }
+          ],
+          "_postman_id": "af2152cf-afba-4a52-9a63-ff7b9b3105f1",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" >\r\n   <soapenv:Header>\r\n      <MessageHeader xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      </MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n\t  <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t  <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Devbox",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('List user cards Devbox' );"
+                ],
+                "type": "text/javascript",
+                "id": "b04693cc-7fcd-4e60-a967-2c8302c96913"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "11538426-16b3-402f-89ff-e9c26bc42f4b"
+              }
+            }
+          ],
+          "_postman_id": "d785991a-39f8-4d43-9750-037793159679",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n      <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://192.168.3.57:444/PaymentGateway/V1"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorize (token) Sit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Authorize (token) Sit' );\r",
+                  "\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.variables.set('PaRes', '');\r",
+                  "pm.variables.set('cres' ,'');\r",
+                  "\r",
+                  "\r",
+                  "if(pm.collectionVariables.get('FetchCallback')) {\r",
+                  "    pm.sendRequest(\r",
+                  "        pm.variables.replaceIn('{{TermUrl}}/{{MD}}'),  \r",
+                  "        function (err, res) {\r",
+                  "            pm.expect(res).to.have.property('code', 200);\r",
+                  "            var json = res.json();\r",
+                  "            if(json.PaRes) {\r",
+                  "                pm.variables.set('PaRes', '<v1:PAResPayload>' + json.PaRes + '</v1:PAResPayload>');\r",
+                  "            }\r",
+                  "            else if(json.cres) {\r",
+                  "                pm.variables.set('cres', '<v1:Cres>' + json.cres + '</v1:Cres>');\r",
+                  "            }\r",
+                  "            else {\r",
+                  "                pm.expect.fail('No PaRes or cres in the callback!');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    );\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "a3de4d55-415c-4cf8-b08a-d6d5eb4f7844"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "const moment = require('moment');\r",
+                  "OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+                  "       \r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "5ca46ca4-78f3-4a8c-9a46-155a1abc8b3b"
+              }
+            }
+          ],
+          "_postman_id": "6dad107b-ede6-4ab2-841a-f5e98140562e",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Authorize"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>{{Amount}}</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>123</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "Capture Devbox",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Capture Devbox' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "2fcf369b-0dcf-43a9-9310-cff82c594974"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "4f4efc09-24e2-4d0f-85bd-51187355e261"
+              }
+            }
+          ],
+          "_postman_id": "04dc4290-eada-4c3a-90f7-20afb504cbd6",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Capture"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>{{Amount}}</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://192.168.3.57:444/PaymentGateway/V1"
+          },
+          "response": []
+        },
+        {
+          "name": "Payment (Token) Sit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Payment (Token) Sit' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "5390e383-4bab-4b1a-b6aa-57bbc5563759"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "12663a25-9385-4957-b967-b1d82ece092a"
+              }
+            }
+          ],
+          "_postman_id": "457daf16-4873-4470-8f0a-3bc1f6baa122",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Payment"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:PaymentRequest>\r\n            <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Card>\r\n                <v1:Token>{{Token}}</v1:Token>\r\n                <v1:SecurityCode>123</v1:SecurityCode>\r\n            </v1:Card>\r\n            <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n         \r\n        </v1:PaymentRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "Refund (Devbox)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Refund (Devbox)' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "0c634590-6c23-48e0-a457-5ba68016b053"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "242045ba-2240-4ede-8db5-4781834ad601"
+              }
+            }
+          ],
+          "_postman_id": "6597e6f5-2735-4ff5-9198-fe94e912cf71",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Refund"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:RefundRequest>\r\n            <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n        </v1:RefundRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete card",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Delete card' );\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript",
+                "id": "a71abe7b-1d12-4dba-8b58-d1b581e8149f"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var MdStatus = $('MdStatus').text();\r",
+                  "var Enrolled = $('Enrolled').text();\r",
+                  "\r",
+                  "if(!MdStatus) {\r",
+                  "    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+                  "    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+                  "        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "    });\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.collectionVariables.set('MdStatus', MdStatus);\r",
+                  "pm.collectionVariables.unset('TxId');\r",
+                  "pm.collectionVariables.unset('FetchCallback');\r",
+                  "pm.collectionVariables.unset('MD');\r",
+                  "pm.collectionVariables.unset('PreviousTransactionID');\r",
+                  "\r",
+                  "var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+                  "if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+                  "    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+                  "        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+                  "    });\r",
+                  "}\r",
+                  "var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+                  "if(ExpectedEnrolled && Enrolled) {\r",
+                  "    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+                  "        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "switch(MdStatus) {\r",
+                  "    case '0':\r",
+                  "        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+                  "        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+                  "        break;\r",
+                  "    case '1':\r",
+                  "        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '4':\r",
+                  "        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '5':\r",
+                  "        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+                  "        break;\r",
+                  "    case '9':\r",
+                  "        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        var code = btoa($('RedirectToACSForm').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+                  "            \" Then request a Payment or Authorize</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+                  "        pm.collectionVariables.set('FetchCallback', true);\r",
+                  "        break;\r",
+                  "    case '50':\r",
+                  "        var TxId = $('TxId').text();\r",
+                  "        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+                  "        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+                  "        var code = btoa($('TDSMethodContent').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.unset('TxId');\r",
+                  "        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+                  "        break;\r",
+                  "    default:\r",
+                  "        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+                  "        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+                  "        break;\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "3b3e4aca-1b48-4013-a7aa-dcc38bd641b9"
+              }
+            }
+          ],
+          "_postman_id": "a7ca8de1-6653-41fe-a824-fd93695af175",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "DeleteCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n         <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var template = `\r",
+                  "    <table bgcolor=\"#FFFFFF\">\r",
+                  "        <tr>\r",
+                  "            <th>Message Type</th>\r",
+                  "            <th>Timestamp</th>\r",
+                  "        </tr>\r",
+                  "        {{#each transactions}}\r",
+                  "            <tr>\r",
+                  "                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+                  "                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+                  "            </tr>\r",
+                  "        {{/each}}\r",
+                  "    </table>\r",
+                  "`;\r",
+                  "\r",
+                  "pm.visualizer.set(template, {\r",
+                  "    // Pass the response body parsed as JSON as `data`\r",
+                  "    transactions: pm.response.json().transactions\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "1d5d03f7-a477-4d96-a43d-04fec77c7120"
+              }
+            }
+          ],
+          "_postman_id": "2f2bfbda-62a2-445b-8983-52795e048555",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{ReportUrl}}/api/transaction"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "efe60015-a885-4aba-b832-026700de102f",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Custom Settings",
+              "// ---------------",
+              "",
+              "// Shared Request Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+              "pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+              "pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+              "pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+              "pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+              "pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+              "pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+              "pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+              "pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+              "",
+              "",
+              "// Secure3DLookup Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+              "pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+              "pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+              "",
+              "// Payment / Authorize Settings",
+              "// ----------------------------",
+              "",
+              "pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+              "pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+              "",
+              "// Report",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "id": "938137ef-f29d-4537-88cb-fa6449d069cb"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ],
+            "id": "4d29ca78-8c27-49b1-9016-71502375a129"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Void redirect",
+      "item": [
+        {
+          "name": "Add Card on Sit",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Add Card on Sit' );"
+                ],
+                "type": "text/javascript",
+                "id": "ce9ad6a0-f1d0-414e-bcd6-92232c36a77c"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "console.log('Generating a new Token: ' + Token );\r",
+                  "\r",
+                  "pm.test('Transaction status is \\'Success\\'', () => {\r",
+                  "    pm.expect(TransactionStatus).to.equal('Success');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "5539ea4f-7488-432a-8eb8-9652a60e7127"
+              }
+            }
+          ],
+          "_postman_id": "e02a66f5-3fff-491e-843c-8107a6488be5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "AddCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t     <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>MasterCard Successful (3DSecure Registered)</CardholderName>\r\n\t        <CardNumber>5576788449392300</CardNumber>\r\n\t        <ExpiryMonth>10</ExpiryMonth>\r\n\t        <ExpiryYear>25</ExpiryYear>\r\n\t        <SecurityCode>123</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Sit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').first().text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "\r",
+                  "console.log('Listing the first token: ' + Token );\r",
+                  "\r",
+                  "pm.test('List card contains cards', () => {\r",
+                  "    pm.expect(responseBody).to.contain('CardholderName');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "5cabd23e-d56f-46d9-9ad8-d464035d426d"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('List user cards Sit' );\r",
+                  "\r",
+                  "//\r",
+                  "// Welcome to the Pre-request Script! \r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript",
+                "id": "40bc993b-b089-42d5-b282-b5c9593a5987"
+              }
+            }
+          ],
+          "_postman_id": "6fbae5a8-773e-44e5-a491-57ef1f1b9226",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" >\r\n   <soapenv:Header>\r\n      <MessageHeader xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      </MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n\t  <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t  <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Devbox",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('List user cards Devbox' );"
+                ],
+                "type": "text/javascript",
+                "id": "70e10dea-225b-4a7f-b2a3-d90c0e5a8d98"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "e3f9deb9-d964-49f4-b701-75a1164c7f0d"
+              }
+            }
+          ],
+          "_postman_id": "f01e0c5f-34dd-446c-bdd2-166d4c9edccc",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n      <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://192.168.3.57:444/PaymentGateway/V1"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorize (token) Devbox",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Authorize (token) Sit' );\r",
+                  "\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.variables.set('PaRes', '');\r",
+                  "pm.variables.set('cres' ,'');\r",
+                  "\r",
+                  "\r",
+                  "if(pm.collectionVariables.get('FetchCallback')) {\r",
+                  "    pm.sendRequest(\r",
+                  "        pm.variables.replaceIn('{{TermUrl}}/{{MD}}'),  \r",
+                  "        function (err, res) {\r",
+                  "            pm.expect(res).to.have.property('code', 200);\r",
+                  "            var json = res.json();\r",
+                  "            if(json.PaRes) {\r",
+                  "                pm.variables.set('PaRes', '<v1:PAResPayload>' + json.PaRes + '</v1:PAResPayload>');\r",
+                  "            }\r",
+                  "            else if(json.cres) {\r",
+                  "                pm.variables.set('cres', '<v1:Cres>' + json.cres + '</v1:Cres>');\r",
+                  "            }\r",
+                  "            else {\r",
+                  "                pm.expect.fail('No PaRes or cres in the callback!');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    );\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "a151e5ee-ce78-451a-8eab-e4dd48be2f48"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "const moment = require('moment');\r",
+                  "OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+                  "       \r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "2d99855e-e67b-447b-92ce-4a507f51cfad"
+              }
+            }
+          ],
+          "_postman_id": "85d981e2-943e-4115-95da-c69683145d71",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Authorize"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>{{Amount}}</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>123</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://192.168.3.57:444/PaymentGateway/V1"
+          },
+          "response": []
+        },
+        {
+          "name": "Void (Sit)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Void (Sit)' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "9a28f9e4-2ffd-4863-9a76-20aa7c6d4f81"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "40eceb21-4283-47fc-801e-91c02b4740a5"
+              }
+            }
+          ],
+          "_postman_id": "5b6a683f-730f-4d5b-b3b8-886179483a9a",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Void"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresentMoto</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete card",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Delete card' );\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript",
+                "id": "15cdba80-8a16-4f1a-83ed-9a66a73f61c4"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var MdStatus = $('MdStatus').text();\r",
+                  "var Enrolled = $('Enrolled').text();\r",
+                  "\r",
+                  "if(!MdStatus) {\r",
+                  "    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+                  "    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+                  "        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "    });\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.collectionVariables.set('MdStatus', MdStatus);\r",
+                  "pm.collectionVariables.unset('TxId');\r",
+                  "pm.collectionVariables.unset('FetchCallback');\r",
+                  "pm.collectionVariables.unset('MD');\r",
+                  "pm.collectionVariables.unset('PreviousTransactionID');\r",
+                  "\r",
+                  "var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+                  "if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+                  "    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+                  "        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+                  "    });\r",
+                  "}\r",
+                  "var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+                  "if(ExpectedEnrolled && Enrolled) {\r",
+                  "    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+                  "        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "switch(MdStatus) {\r",
+                  "    case '0':\r",
+                  "        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+                  "        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+                  "        break;\r",
+                  "    case '1':\r",
+                  "        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '4':\r",
+                  "        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '5':\r",
+                  "        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+                  "        break;\r",
+                  "    case '9':\r",
+                  "        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        var code = btoa($('RedirectToACSForm').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+                  "            \" Then request a Payment or Authorize</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+                  "        pm.collectionVariables.set('FetchCallback', true);\r",
+                  "        break;\r",
+                  "    case '50':\r",
+                  "        var TxId = $('TxId').text();\r",
+                  "        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+                  "        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+                  "        var code = btoa($('TDSMethodContent').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.unset('TxId');\r",
+                  "        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+                  "        break;\r",
+                  "    default:\r",
+                  "        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+                  "        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+                  "        break;\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "7b1ae14c-1349-4c97-ad1e-29bb338f11ae"
+              }
+            }
+          ],
+          "_postman_id": "3a7daa71-c228-49c0-87d9-a63063c42b00",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "DeleteCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n         <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var template = `\r",
+                  "    <table bgcolor=\"#FFFFFF\">\r",
+                  "        <tr>\r",
+                  "            <th>Message Type</th>\r",
+                  "            <th>Timestamp</th>\r",
+                  "        </tr>\r",
+                  "        {{#each transactions}}\r",
+                  "            <tr>\r",
+                  "                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+                  "                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+                  "            </tr>\r",
+                  "        {{/each}}\r",
+                  "    </table>\r",
+                  "`;\r",
+                  "\r",
+                  "pm.visualizer.set(template, {\r",
+                  "    // Pass the response body parsed as JSON as `data`\r",
+                  "    transactions: pm.response.json().transactions\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "018a9c09-d10c-42ac-b4c0-c9fa5c40fbaa"
+              }
+            }
+          ],
+          "_postman_id": "f1c046da-2b3c-4c17-b570-4e719c074282",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"orderNumbers\": [\"{{OrderNumber}}\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{ReportUrl}}/api/transaction"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "755f5e3c-f8e3-4b03-b2b3-eecee62d0eac",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Custom Settings",
+              "// ---------------",
+              "",
+              "// Shared Request Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+              "pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+              "pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+              "pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+              "pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+              "pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+              "pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+              "pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+              "pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+              "",
+              "",
+              "// Secure3DLookup Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+              "pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+              "pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+              "",
+              "// Payment / Authorize Settings",
+              "// ----------------------------",
+              "",
+              "pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+              "pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+              "",
+              "// Report",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "id": "fdd6bbbb-2418-41b0-b665-d5f77a6526d0"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ],
+            "id": "7c531f5b-8575-4089-9bcc-f29cfbba61b0"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Void redirect UAT",
+      "item": [
+        {
+          "name": "Add Card on Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "92997cfb-df8d-41ea-bba8-f55d374fa7d3",
+                "exec": [
+                  "console.log('Add Card on Rondebosch' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "7b942565-fd14-4d5d-ac67-f2c74cc56cf0",
+                "exec": [
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "console.log('Generating a new Token: ' + Token );\r",
+                  "\r",
+                  "pm.test('Transaction status is \\'Success\\'', () => {\r",
+                  "    pm.expect(TransactionStatus).to.equal('Success');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "d944a3b8-1dac-4a88-b98f-53fe5daada32",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "AddCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MerchantUserID}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>FNBCard03</CardholderName>\r\n\t        <CardNumber>4790812400949024</CardNumber>\r\n\t        <ExpiryMonth>08</ExpiryMonth>\r\n\t        <ExpiryYear>2025</ExpiryYear>\r\n            <SecurityCode>262</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "d06e0657-8830-40c1-b40e-7d37c606488e",
+                "exec": [
+                  "console.log('List user cards Isando' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "192db428-dd3b-4fb4-811f-c7bc5168a85d",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "c39de50f-63fc-40ef-ab40-f543955e4eca",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MerchantUserID}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{IsandoURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorize (token) Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "32cdffe0-8744-44a8-a0ee-6e867fa67d9d",
+                "exec": [
+                  "console.log('Authorize (token) Sit' );\r",
+                  "\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.variables.set('PaRes', '');\r",
+                  "pm.variables.set('cres' ,'');\r",
+                  "\r",
+                  "\r",
+                  "if(pm.collectionVariables.get('FetchCallback')) {\r",
+                  "    pm.sendRequest(\r",
+                  "        pm.variables.replaceIn('{{TermUrl}}/{{MD}}'),  \r",
+                  "        function (err, res) {\r",
+                  "            pm.expect(res).to.have.property('code', 200);\r",
+                  "            var json = res.json();\r",
+                  "            if(json.PaRes) {\r",
+                  "                pm.variables.set('PaRes', '<v1:PAResPayload>' + json.PaRes + '</v1:PAResPayload>');\r",
+                  "            }\r",
+                  "            else if(json.cres) {\r",
+                  "                pm.variables.set('cres', '<v1:Cres>' + json.cres + '</v1:Cres>');\r",
+                  "            }\r",
+                  "            else {\r",
+                  "                pm.expect.fail('No PaRes or cres in the callback!');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    );\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "7aaa7111-f256-426b-9406-6f7f016953be",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "const moment = require('moment');\r",
+                  "OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+                  "       \r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "dca40a7c-6a96-49f7-a97a-ea72a014bd9e",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Authorize"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>{{Amount}}</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>262</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env2URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Capture on Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "5e018771-31d0-4301-9581-e4df7ef5d58e",
+                "exec": [
+                  "console.log('Capture Devbox' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "c3a9fcb6-8a12-4cd1-a2c0-aa0744c96aa2",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "c129d83f-43e0-47eb-a95c-6ec51d2ba86a",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Capture"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>{{Amount}}</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env1URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Refund on Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "1ce914e6-422f-43fa-a969-98e169d72299",
+                "exec": [
+                  "console.log('Refund (Devbox)' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "b0aed5f9-e0f6-4a5a-b69e-829433d0aae8",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "1d323678-6e85-414a-a29c-8dcd92ea0c65",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Refund"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:RefundRequest>\r\n            <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>LOBalance003</v1:OrderNumber>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:RefundRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Void Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Void (Sit)' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "76e91df8-7427-4b23-80f4-0b21977038a2"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "80ec4897-d49d-4e6d-a8c8-3a5c6c62ccc8"
+              }
+            }
+          ],
+          "_postman_id": "55e1487c-5252-4687-a3bd-519e4138f996",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Void"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete card",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "14127913-c07e-46ea-a63f-60fc6a7c4d23",
+                "exec": [
+                  "console.log('Delete card' );\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "4b2787af-ef40-4787-a1cc-ba1ee2f506a4",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var MdStatus = $('MdStatus').text();\r",
+                  "var Enrolled = $('Enrolled').text();\r",
+                  "\r",
+                  "if(!MdStatus) {\r",
+                  "    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+                  "    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+                  "        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "    });\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.collectionVariables.set('MdStatus', MdStatus);\r",
+                  "pm.collectionVariables.unset('TxId');\r",
+                  "pm.collectionVariables.unset('FetchCallback');\r",
+                  "pm.collectionVariables.unset('MD');\r",
+                  "pm.collectionVariables.unset('PreviousTransactionID');\r",
+                  "\r",
+                  "var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+                  "if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+                  "    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+                  "        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+                  "    });\r",
+                  "}\r",
+                  "var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+                  "if(ExpectedEnrolled && Enrolled) {\r",
+                  "    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+                  "        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "switch(MdStatus) {\r",
+                  "    case '0':\r",
+                  "        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+                  "        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+                  "        break;\r",
+                  "    case '1':\r",
+                  "        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '4':\r",
+                  "        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '5':\r",
+                  "        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+                  "        break;\r",
+                  "    case '9':\r",
+                  "        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        var code = btoa($('RedirectToACSForm').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+                  "            \" Then request a Payment or Authorize</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+                  "        pm.collectionVariables.set('FetchCallback', true);\r",
+                  "        break;\r",
+                  "    case '50':\r",
+                  "        var TxId = $('TxId').text();\r",
+                  "        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+                  "        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+                  "        var code = btoa($('TDSMethodContent').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.unset('TxId');\r",
+                  "        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+                  "        break;\r",
+                  "    default:\r",
+                  "        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+                  "        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+                  "        break;\r",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "e7800de6-ad11-4917-9cac-2c4876123a71",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "DeleteCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n   \r\n      <DeleteCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n        <MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</MerchantID>\r\n         <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n            <Token>{{Token}}</Token>\r\n         </Card>\r\n      </DeleteCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env2URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "d94c2db0-2a0f-4c61-a2db-220a92812340",
+                "exec": [
+                  "var template = `\r",
+                  "    <table bgcolor=\"#FFFFFF\">\r",
+                  "        <tr>\r",
+                  "            <th>Message Type</th>\r",
+                  "            <th>Timestamp</th>\r",
+                  "        </tr>\r",
+                  "        {{#each transactions}}\r",
+                  "            <tr>\r",
+                  "                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+                  "                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+                  "            </tr>\r",
+                  "        {{/each}}\r",
+                  "    </table>\r",
+                  "`;\r",
+                  "\r",
+                  "pm.visualizer.set(template, {\r",
+                  "    // Pass the response body parsed as JSON as `data`\r",
+                  "    transactions: pm.response.json().transactions\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "766b169b-95c4-4f11-af5e-e1a8eeebd815",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"orderNumbers\": [\"LOBalance004\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{ReportUrl}}/api/transaction"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "5b9b53ba-0500-4a36-abf8-19729f628a5c",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Custom Settings",
+              "// ---------------",
+              "",
+              "// Shared Request Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('CardNumber', pm.variables.get('CardNumber') || '5163422583500531');",
+              "pm.variables.set('OrderPrefix', pm.variables.get('OrderPrefix') || 'PM');",
+              "pm.variables.set('Amount', pm.variables.get('Amount') || '1159');",
+              "pm.variables.set('CurrencyCode', pm.variables.get('CurrencyCode') || 'ZAR');",
+              "pm.variables.set('ExpiryYear', pm.variables.get('ExpiryYear') || '25');",
+              "pm.variables.set('ExpiryMonth', pm.variables.get('ExpiryMonth') || '05');",
+              "pm.variables.set('CVV', pm.variables.get('CVV') || '123');",
+              "pm.variables.set('CardholderName', pm.variables.get('CardholderName') || 'John Bloggs');",
+              "pm.variables.set('PaymentService', pm.variables.get('PaymentService') || 'CardNotPresent');",
+              "",
+              "",
+              "// Secure3DLookup Settings",
+              "// -----------------------",
+              "",
+              "pm.variables.set('ExpectedMdStatus', pm.variables.get('ExpectedMdStatus') || '1');",
+              "pm.variables.set('ExpectedEnrolled', pm.variables.get('ExpectedEnrolled') || null);",
+              "pm.variables.set('ExpectedSecure3DLookupStatus', pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success');",
+              "",
+              "// Payment / Authorize Settings",
+              "// ----------------------------",
+              "",
+              "pm.variables.set('ExpectedPaymentStatus', pm.variables.get('ExpectedPaymentStatus') || 'Success');",
+              "pm.variables.set('ExpectedAuthorizeStatus', pm.variables.get('ExpectedAuthorizeStatus') || 'Success');",
+              "",
+              "// Report",
+              "",
+              "",
+              "",
+              "",
+              "",
+              ""
+            ],
+            "id": "027be385-5189-4d3d-aa33-06ca6f86540d"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              ""
+            ],
+            "id": "0905faa6-6f5c-4ccb-a368-7c6219318261"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parking",
+      "item": [
+        {
+          "name": "Secure3DLookup",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Pre-request Script! \r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "var MdStatus = pm.collectionVariables.get('MdStatus');\r",
+                  "if(MdStatus != '50') {\r",
+                  "    const moment = require('moment');\r",
+                  "    OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "    pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "    console.log('Generating a new OrderNumber: ' + OrderNumber + ' (Previous MdStatus ' + MdStatus +')');\r",
+                  "}\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.collectionVariables.set('TxId', pm.collectionVariables.get('TxId') ? pm.collectionVariables.get('TxId') : '');"
+                ],
+                "type": "text/javascript",
+                "id": "72768a28-8971-4775-8ce4-ee76a2a74f09"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var MdStatus = $('MdStatus').text();\r",
+                  "var Enrolled = $('Enrolled').text();\r",
+                  "\r",
+                  "if(!MdStatus) {\r",
+                  "    var ExpectedTransactionStatus =  pm.variables.get('ExpectedSecure3DLookupStatus') || 'Success';\r",
+                  "    pm.test('Expected TransactionStatus to be ' + ExpectedTransactionStatus, () => {\r",
+                  "        pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "    });\r",
+                  "    return;\r",
+                  "}\r",
+                  "\r",
+                  "pm.collectionVariables.set('MdStatus', MdStatus);\r",
+                  "pm.collectionVariables.unset('TxId');\r",
+                  "pm.collectionVariables.unset('FetchCallback');\r",
+                  "pm.collectionVariables.unset('MD');\r",
+                  "pm.collectionVariables.unset('PreviousTransactionID');\r",
+                  "\r",
+                  "var ExpectedMdStatus = pm.variables.get('ExpectedMdStatus');\r",
+                  "if(ExpectedMdStatus && MdStatus &&  MdStatus != '50') {\r",
+                  "    pm.test('Expected MdStatus ' + ExpectedMdStatus + ' [Found ' + MdStatus + ']', function() {\r",
+                  "        pm.expect(ExpectedMdStatus).to.equal(MdStatus);\r",
+                  "    });\r",
+                  "}\r",
+                  "var ExpectedEnrolled = pm.variables.get('ExpectedEnrolled');\r",
+                  "if(ExpectedEnrolled && Enrolled) {\r",
+                  "    pm.test('Expected Enrolled ' + ExpectedEnrolled + ' [Found ' + Enrolled + ']', function() {\r",
+                  "        pm.expect(ExpectedEnrolled).to.equal(Enrolled);\r",
+                  "    });\r",
+                  "}\r",
+                  "\r",
+                  "switch(MdStatus) {\r",
+                  "    case '0':\r",
+                  "        pm.test('MdStatus is 0 [Do not proceed.]', () => true)\r",
+                  "        pm.visualizer.set('<p>MdStatus: 0 - Do not proceed.</p>');\r",
+                  "        break;\r",
+                  "    case '1':\r",
+                  "        pm.test('MdStatus is 1 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 1 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '4':\r",
+                  "        pm.test('MdStatus is 4 [Request Payment or Authorize.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 4 - Request a Payment or Authorize.</p>');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        break;\r",
+                  "    case '5':\r",
+                  "        pm.test('MdStatus is 5 [Authentication is unavailable.]', () => true);\r",
+                  "        pm.visualizer.set('<p>MdStatus: 5 - Do not process, authentication is unavailable.</p>');\r",
+                  "        break;\r",
+                  "    case '9':\r",
+                  "        pm.test('MdStatus is 9 [Open the Visualizer then request Payment or Authorize.]');\r",
+                  "        pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'));\r",
+                  "        var code = btoa($('RedirectToACSForm').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 9 - Run the ACS Challenge, user interaction might be required (one time pin or password <strong>test123</strong>).\"+\r",
+                  "            \" Then request a Payment or Authorize</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.set('MD', $('TransactionID').text());\r",
+                  "        pm.collectionVariables.set('FetchCallback', true);\r",
+                  "        break;\r",
+                  "    case '50':\r",
+                  "        var TxId = $('TxId').text();\r",
+                  "        pm.test('MdStatus is 50 [Open the Visualizer then request Secure3DLookup again]', () => true);\r",
+                  "        pm.test('Expected an TxId: ' + TxId, () => !!TxId);\r",
+                  "        var code = btoa($('TDSMethodContent').text());\r",
+                  "        var temp = \r",
+                  "            \"<p>MdStatus: 50 - Run the 3DS Method, no user interaction is required, then run Secure3DLookup again...</p>\" +\r",
+                  "            \"<form action='{{action}}' method='POST'>\" + \r",
+                  "            \"  <input type='hidden' name='code' value='{{code}}' />\" +\r",
+                  "            \"  <input type='submit' value='Run' />\" +\r",
+                  "            \"</form>\";\r",
+                  "        pm.visualizer.set(temp, {code, action: pm.environment.get('VisualizerUrl')});\r",
+                  "        pm.collectionVariables.unset('TxId');\r",
+                  "        pm.collectionVariables.set('TxId', '<v1:TxId>' + TxId + '</v1:TxId>');\r",
+                  "        break;\r",
+                  "    default:\r",
+                  "        pm.test('Expected MdStatus 0, 1, 5, 9 or 50, but found: '+ MdStatus, () => false);\r",
+                  "        pm.visualizer.set('<p>MdStatus: ' + MdStatus + ' - Do not proceed, unexpected.</p>');\r",
+                  "        break;\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "id": "bc5460bc-bb78-4152-945b-317fb95c7adf"
+              }
+            }
+          ],
+          "_postman_id": "81fabf3d-bfd4-4f75-981e-a19843074edb",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "Secure3DLookup",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:Secure3DLookupRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Card>\r\n                <v1:CardholderName>{{CardholderName}}</v1:CardholderName>\r\n                <v1:CardNumber>{{CardNumber}}</v1:CardNumber>\r\n                <v1:ExpiryMonth>{{ExpiryMonth}}</v1:ExpiryMonth>\r\n                <v1:ExpiryYear>{{ExpiryYear}}</v1:ExpiryYear>\r\n                <v1:SecurityCode>{{CVV}}</v1:SecurityCode>\r\n            </v1:Card>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n            <v1:TermUrl>{{TermUrl}}</v1:TermUrl>\r\n            {{TxId}}\r\n        </v1:Secure3DLookupRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "https://003enterprise.ecentric.co.za/paymentgateway/v1"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Devbox",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('List user cards Devbox' );"
+                ],
+                "type": "text/javascript",
+                "id": "7c3cdd30-188c-4ee3-83ef-d8d8a4f8811b"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.not.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "//Even if the test fails we use the found token\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "dd8969da-342f-4244-87d9-9ab38e57008f"
+              }
+            }
+          ],
+          "_postman_id": "5603d417-6c41-4c62-93a3-b29bd1da81b0",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n      <MerchantUserID>Post Man</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "http://192.168.3.57:444/PaymentGateway/V1"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "9ab1ebda-d82a-4edf-9e38-4f4af22ab359"
+    },
+    {
+      "name": "Authorize+Payment",
+      "item": [
+        {
+          "name": "Add Card on Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "b4cef46e-19d3-4027-a8a8-72c6fa017332",
+                "exec": [
+                  "console.log('Add Card on Rondebosch' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "fa1c14ca-9f29-4dfd-96ce-d4e99fbd98b9",
+                "exec": [
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "console.log('Generating a new Token: ' + Token );\r",
+                  "\r",
+                  "pm.test('Transaction status is \\'Success\\'', () => {\r",
+                  "    pm.expect(TransactionStatus).to.equal('Success');\r",
+                  "});\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "369277f9-093e-4e2c-8d7a-2a470cb5e4d5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "AddCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n            <MerchantID>{{MerchantID}}</MerchantID>\r\n            <MerchantUserID>{{MyMyMerchantUserId}}</MerchantUserID>\r\n            <Card>\r\n                <CardholderName>{{MyName}}</CardholderName>\r\n                <CardNumber>{{MyCard}}</CardNumber>\r\n                <ExpiryMonth>{{MyExpiryMonth}}</ExpiryMonth>\r\n                <ExpiryYear>{{MyExpiryYear}}</ExpiryYear>\r\n                <SecurityCode>{{MySecurityCode}}</SecurityCode>\r\n            </Card>\r\n        </AddCardRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env2URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "760eab9c-2ad5-4220-91c9-7283545c5720",
+                "exec": [
+                  "console.log('List user cards Isando' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "66fa37e0-6afd-4c00-9714-5ecc405d7a29",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "fb7a71d4-a2b7-4956-8806-1448539de6d5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>{{MerchantID}}</MerchantID>\r\n      <MerchantUserID>{{MyMerchantUserId}}</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env1URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorize (token) Rondebosch",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "230fc637-ec87-4b03-8c57-2dbe544526a5",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "const moment = require('moment');\r",
+                  "OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+                  "       \r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "d6d97632-3124-4149-9ed7-303a9c77ec1a",
+                "exec": [
+                  "console.log('Authorize (token) Sit' );\r",
+                  "\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.variables.set('PaRes', '');\r",
+                  "pm.variables.set('cres' ,'');\r",
+                  "\r",
+                  "\r",
+                  "if(pm.collectionVariables.get('FetchCallback')) {\r",
+                  "    pm.sendRequest(\r",
+                  "        pm.variables.replaceIn('{{TermUrl}}/{{MD}}'),  \r",
+                  "        function (err, res) {\r",
+                  "            pm.expect(res).to.have.property('code', 200);\r",
+                  "            var json = res.json();\r",
+                  "            if(json.PaRes) {\r",
+                  "                pm.variables.set('PaRes', '<v1:PAResPayload>' + json.PaRes + '</v1:PAResPayload>');\r",
+                  "            }\r",
+                  "            else if(json.cres) {\r",
+                  "                pm.variables.set('cres', '<v1:Cres>' + json.cres + '</v1:Cres>');\r",
+                  "            }\r",
+                  "            else {\r",
+                  "                pm.expect.fail('No PaRes or cres in the callback!');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    );\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "b848fb17-7c09-4fb8-a8e8-4bf79f17812e",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Authorize"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>300</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>PaymentService1</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env1URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "77f22ffa-e724-449a-b259-d1f12d47734b",
+                "exec": [
+                  "console.log('Payment (Token) Sit' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "5b7fbc87-0c16-4f78-a4b7-d1c819cbae71",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "54db76b9-fe60-4fbb-ab81-9a99741fea37",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Payment"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:PaymentRequest>\r\n            <v1:MerchantID>{{MerchantID}}</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:Amount>4300</v1:Amount>\r\n            <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n            <v1:OrderNumber>Cardtest</v1:OrderNumber>\r\n            <v1:Card>\r\n                <v1:Token>{{Token}}</v1:Token>\r\n                <v1:SecurityCode>{{MySecurityCode}}</v1:SecurityCode>\r\n            </v1:Card>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n         \r\n        </v1:PaymentRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{Env1URL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "af1bff3b-dc97-486e-ba5f-4b7966e0fb4d",
+                "exec": [
+                  "var template = `\r",
+                  "    <table bgcolor=\"#FFFFFF\">\r",
+                  "        <tr>\r",
+                  "            <th>Message Type</th>\r",
+                  "            <th>Timestamp</th>\r",
+                  "        </tr>\r",
+                  "        {{#each transactions}}\r",
+                  "            <tr>\r",
+                  "                <td>{{MSGH.MessageData.MsgType}}</td>\r",
+                  "                <td>{{MSGH.MessageData.Timestamp}}</td>\r",
+                  "            </tr>\r",
+                  "        {{/each}}\r",
+                  "    </table>\r",
+                  "`;\r",
+                  "\r",
+                  "pm.visualizer.set(template, {\r",
+                  "    // Pass the response body parsed as JSON as `data`\r",
+                  "    transactions: pm.response.json().transactions\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "9293b77c-775d-40b8-98ff-007a2480508d",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"orderNumbers\": [\"LOBalance14\"]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{ReportUrl}}/api/transaction"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "b789f787-17f8-4fd8-97e3-118acceaafd0"
+    },
+    {
+      "name": "Authorize+Refund",
+      "item": [
+        {
+          "name": "Add Card on Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "45faa8f8-9db8-447d-a48e-8929a739b050",
+                "exec": [
+                  "console.log('Add Card on Rondebosch' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "1c44ed0f-6002-4050-b3fc-a522f784e9a5",
+                "exec": [
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var Token = $('Token').text();\r",
+                  "pm.collectionVariables.set(\"Token\", Token);\r",
+                  "console.log('Generating a new Token: ' + Token );\r",
+                  "\r",
+                  "pm.test('Transaction status is \\'Success\\'', () => {\r",
+                  "    pm.expect(TransactionStatus).to.equal('Success');\r",
+                  "});\r",
+                  "\r",
+                  "console.log(\"hello team\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "13cea6f5-1156-4c0c-b589-9af0078c41e0",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "AddCard",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>{{MerchantID}}</MerchantID>\r\n\t     <MerchantUserID>{{MerchantUserID}}</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>{{CardholderName}}</CardholderName>\r\n\t        <CardNumber>{{CardNumber}}</CardNumber>\r\n\t        <ExpiryMonth>{{ExpiryMonth}}</ExpiryMonth>\r\n\t        <ExpiryYear>{{ExpiryYear}}</ExpiryYear>\r\n            <SecurityCode>{{SecurityCode}}</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List user cards Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "469bd910-377b-48fb-aa3c-4d012d9f51be",
+                "exec": [
+                  "console.log('List user cards Isando' );"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "d84f1a2a-1844-4ab1-9afd-1d0c19bb34e6",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Secure3DLookup file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "var Token = $('Token').text();\r",
+                  "console.log('Tokens in responsebody: ' + Token );\r",
+                  "\r",
+                  "pm.test('Token is replicated to DevBox', () => {\r",
+                  "    pm.expect(Token).to.contain(pm.collectionVariables.get(\"Token\"));\r",
+                  "});\r",
+                  "\r",
+                  "return;\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "ff54af25-26cc-4b58-a4ca-08beaddb3230",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "SOAPAction",
+                "value": "ListUserCards",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "text/xml;charset=UTF-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n    <ListUserCardsRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n      <MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</MerchantID>\r\n      <MerchantUserID>NGAMEDE04</MerchantUserID>\r\n\t</ListUserCardsRequest>\r\n\r\n     \r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{IsandoURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Authorize (token) Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "1d22deda-fb3b-4210-abbf-7dea3825fd58",
+                "exec": [
+                  "console.log('Authorize (token) Sit' );\r",
+                  "\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "pm.variables.set('PaRes', '');\r",
+                  "pm.variables.set('cres' ,'');\r",
+                  "\r",
+                  "\r",
+                  "if(pm.collectionVariables.get('FetchCallback')) {\r",
+                  "    pm.sendRequest(\r",
+                  "        pm.variables.replaceIn('{{TermUrl}}/{{MD}}'),  \r",
+                  "        function (err, res) {\r",
+                  "            pm.expect(res).to.have.property('code', 200);\r",
+                  "            var json = res.json();\r",
+                  "            if(json.PaRes) {\r",
+                  "                pm.variables.set('PaRes', '<v1:PAResPayload>' + json.PaRes + '</v1:PAResPayload>');\r",
+                  "            }\r",
+                  "            else if(json.cres) {\r",
+                  "                pm.variables.set('cres', '<v1:Cres>' + json.cres + '</v1:Cres>');\r",
+                  "            }\r",
+                  "            else {\r",
+                  "                pm.expect.fail('No PaRes or cres in the callback!');\r",
+                  "            }\r",
+                  "        }\r",
+                  "    );\r",
+                  "}\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "d19fb456-6061-4ad7-8403-8b7bad826a70",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "const moment = require('moment');\r",
+                  "OrderNumber = pm.variables.get('OrderPrefix') + moment().format(\"YYYYMMDDHHMMSS\");\r",
+                  "pm.collectionVariables.set('OrderNumber', OrderNumber);\r",
+                  "console.log('Generating a new OrderNumber: ' + OrderNumber );\r",
+                  "       \r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "43fe4f63-e2fa-4d12-8aef-1e96a3870194",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Authorize"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n      <v1:AuthorizeRequest>\r\n        <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n        <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n        <v1:Amount>{{Amount}}</v1:Amount>\r\n        <v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n        <v1:OrderNumber>LOBalance05</v1:OrderNumber>\r\n        <v1:Card>\r\n            <v1:Token>{{Token}}</v1:Token>\r\n            <v1:SecurityCode>168</v1:SecurityCode>\r\n        </v1:Card>\r\n        <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:AuthorizeRequest>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{IsandoURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Capture on Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "3c39822d-e8cc-4109-8bd7-b13d2777ba3f",
+                "exec": [
+                  "console.log('Capture Devbox' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "79d2dcd7-6b23-4b15-8628-0979e0c0640f",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "61cc9095-8695-428f-a7d7-217e6a0612ac",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Capture"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n     <v1:CaptureRequest>\r\n          <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n     \t<v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n     \t<v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n          <v1:OrderNumber>LoadBalance01</v1:OrderNumber>\r\n     \t<v1:CurrencyCode>ZAR</v1:CurrencyCode>\r\n     \t<v1:Amount>{{Amount}}</v1:Amount>\r\n     \t<v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n      </v1:CaptureRequest>\r\n\r\n      \r\n     \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Void Rondebosch",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "console.log('Void (Sit)' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "id": "bdc5cd3a-6f3d-4598-9a52-ad0dfdafe953"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "11d59826-a208-445f-ba52-ff261051c937"
+              }
+            }
+          ],
+          "_postman_id": "487dc18b-e803-4976-87e4-381f07e5e10a",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Void"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:VoidRequest>\r\n            <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:PreviousTransactionID>{{PreviousTransactionID}}</v1:PreviousTransactionID>\r\n            <v1:OrderNumber>{{OrderNumber}}</v1:OrderNumber>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n        </v1:VoidRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{RondeboschURL}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Payment Isando",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "id": "a33d63ec-91ef-4083-a961-3a2ffbaa7592",
+                "exec": [
+                  "console.log('Payment (Token) Sit' );\r",
+                  "pm.collectionVariables.set('TransactionID', pm.variables.replaceIn('{{$guid}}'));\r",
+                  "\r",
+                  "\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "id": "d290d584-529b-4af9-a44b-292b5d641b89",
+                "exec": [
+                  "//\r",
+                  "// Welcome to the Tests!\r",
+                  "// Only edit the Authorize file in the Template folder!\r",
+                  "//\r",
+                  "\r",
+                  "const $ = cheerio.load(responseBody);\r",
+                  "\r",
+                  "pm.collectionVariables.set('PreviousTransactionID', pm.collectionVariables.get('TransactionID'))\r",
+                  "\r",
+                  "var TransactionStatus = $('TransactionStatus').text();\r",
+                  "var ExpectedTransactionStatus = pm.variables.get('ExpectedAuthorizeStatus');\r",
+                  "pm.test('TransactionStatus is ' + ExpectedTransactionStatus, function () {\r",
+                  "    pm.expect(TransactionStatus).to.equal(ExpectedTransactionStatus);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "_postman_id": "f7633f8b-8487-4b16-8e50-ecd096ff2775",
+          "protocolProfileBehavior": {
+            "disabledSystemHeaders": {
+              "content-type": true
+            },
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "type": "text",
+                "value": "text/xml; charset=utf-8"
+              },
+              {
+                "key": "SoapACTION",
+                "type": "text",
+                "value": "Payment"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n    <soapenv:Header>\r\n        <v1:MessageHeader></v1:MessageHeader>\r\n    </soapenv:Header>\r\n    <soapenv:Body>\r\n        <v1:PaymentRequest>\r\n            <v1:MerchantID>908A1DBF-D6AF-4327-936E-851D8F3EFE0A</v1:MerchantID>\r\n            <v1:TransactionID>{{TransactionID}}</v1:TransactionID>\r\n            <v1:Amount>{{Amount}}</v1:Amount>\r\n            <v1:CurrencyCode>{{CurrencyCode}}</v1:CurrencyCode>\r\n            <v1:OrderNumber>LOBalance004</v1:OrderNumber>\r\n            <v1:Card>\r\n                <v1:Token>{{Token}}</v1:Token>\r\n                <v1:SecurityCode>608</v1:SecurityCode>\r\n            </v1:Card>\r\n            <v1:PaymentService>CardNotPresent</v1:PaymentService>\r\n         \r\n        </v1:PaymentRequest>\r\n    </soapenv:Body>\r\n</soapenv:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": "{{IsandoURL}}"
+          },
+          "response": []
+        }
+      ],
+      "_postman_id": "a56fb7af-cbc8-4d1d-a05c-02f4e5600ddd"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ],
+        "id": "f4fce1d6-7b8a-4e9b-a189-147d123a745e"
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ],
+        "id": "67b2aaf6-bf1c-4b77-8549-abccccd3a803"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "id": "c3043f20-0254-4114-b895-0aa07bfb54fc",
+      "key": "OrderNumber",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "f30ce215-3d69-4c50-95d5-3dabc644940d",
+      "key": "TransactionID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "e0b665ec-63b9-4688-80cf-942aa1fa3b25",
+      "key": "TxId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "638be958-dc78-499c-934e-bc48548c7a2d",
+      "key": "Token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "47a54c48-0a48-4819-a493-62befe91e2eb",
+      "key": "MdStatus",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "b393ee71-5cec-459e-9c3e-3603ff054ecf",
+      "key": "PreviousTransactionID",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "id": "a0d566d2-502a-477f-914f-0d0dda021c35",
+      "key": "AuthorizeTransactionID",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
