@@ -44,7 +44,7 @@
               }
             }
           ],
-          "_postman_id": "3fb41e3e-6696-4429-90d4-9a0d7ca11449",
+          "id": "3fb41e3e-6696-4429-90d4-9a0d7ca11449",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -131,7 +131,7 @@
               }
             }
           ],
-          "_postman_id": "af2152cf-afba-4a52-9a63-ff7b9b3105f1",
+          "id": "af2152cf-afba-4a52-9a63-ff7b9b3105f1",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -201,7 +201,7 @@
               }
             }
           ],
-          "_postman_id": "d785991a-39f8-4d43-9750-037793159679",
+          "id": "d785991a-39f8-4d43-9750-037793159679",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -302,7 +302,7 @@
               }
             }
           ],
-          "_postman_id": "6dad107b-ede6-4ab2-841a-f5e98140562e",
+          "id": "6dad107b-ede6-4ab2-841a-f5e98140562e",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -375,7 +375,7 @@
               }
             }
           ],
-          "_postman_id": "04dc4290-eada-4c3a-90f7-20afb504cbd6",
+          "id": "04dc4290-eada-4c3a-90f7-20afb504cbd6",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -451,7 +451,7 @@
               }
             }
           ],
-          "_postman_id": "457daf16-4873-4470-8f0a-3bc1f6baa122",
+          "id": "457daf16-4873-4470-8f0a-3bc1f6baa122",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -527,7 +527,7 @@
               }
             }
           ],
-          "_postman_id": "6597e6f5-2735-4ff5-9198-fe94e912cf71",
+          "id": "6597e6f5-2735-4ff5-9198-fe94e912cf71",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -685,7 +685,7 @@
               }
             }
           ],
-          "_postman_id": "a7ca8de1-6653-41fe-a824-fd93695af175",
+          "id": "a7ca8de1-6653-41fe-a824-fd93695af175",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -748,7 +748,7 @@
               }
             }
           ],
-          "_postman_id": "2f2bfbda-62a2-445b-8983-52795e048555",
+          "id": "2f2bfbda-62a2-445b-8983-52795e048555",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -775,7 +775,7 @@
           "response": []
         }
       ],
-      "_postman_id": "efe60015-a885-4aba-b832-026700de102f",
+      "id": "efe60015-a885-4aba-b832-026700de102f",
       "event": [
         {
           "listen": "prerequest",
@@ -844,16 +844,17 @@
             {
               "listen": "prerequest",
               "script": {
+                "id": "ce9ad6a0-f1d0-414e-bcd6-92232c36a77c",
                 "exec": [
                   "console.log('Add Card on Sit' );"
                 ],
-                "type": "text/javascript",
-                "id": "ce9ad6a0-f1d0-414e-bcd6-92232c36a77c"
+                "type": "text/javascript"
               }
             },
             {
               "listen": "test",
               "script": {
+                "id": "5539ea4f-7488-432a-8eb8-9652a60e7127",
                 "exec": [
                   "const $ = cheerio.load(responseBody);\r",
                   "var TransactionStatus = $('TransactionStatus').text();\r",
@@ -868,12 +869,11 @@
                   "\r",
                   ""
                 ],
-                "type": "text/javascript",
-                "id": "5539ea4f-7488-432a-8eb8-9652a60e7127"
+                "type": "text/javascript"
               }
             }
           ],
-          "_postman_id": "e02a66f5-3fff-491e-843c-8107a6488be5",
+          "id": "e02a66f5-3fff-491e-843c-8107a6488be5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -893,7 +893,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t     <MerchantUserID>Post Man</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>MasterCard Successful (3DSecure Registered)</CardholderName>\r\n\t        <CardNumber>5576788449392300</CardNumber>\r\n\t        <ExpiryMonth>10</ExpiryMonth>\r\n\t        <ExpiryYear>25</ExpiryYear>\r\n\t        <SecurityCode>123</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+              "raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:v1=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n   <soapenv:Header>\r\n      <v1:MessageHeader>\r\n      </v1:MessageHeader>\r\n   </soapenv:Header>\r\n   <soapenv:Body>\r\n\r\n      <AddCardRequest xmlns=\"http://www.ecentricswitch.co.za/paymentgateway/v1\">\r\n         <MerchantID>B64622BE-4C90-4246-A42F-9E3AE99C1D96</MerchantID>\r\n\t     <MerchantUserID>Postman</MerchantUserID>\r\n         <Card>\r\n\t        <CardholderName>MasterCard Successful (3DSecure Registered)</CardholderName>\r\n\t        <CardNumber>5576788449392300</CardNumber>\r\n\t        <ExpiryMonth>10</ExpiryMonth>\r\n\t        <ExpiryYear>25</ExpiryYear>\r\n\t        <SecurityCode>123</SecurityCode>\r\n\t     </Card>\r\n      </AddCardRequest>\r\n      \r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
               "options": {
                 "raw": {
                   "language": "xml"
@@ -960,7 +960,7 @@
               }
             }
           ],
-          "_postman_id": "6fbae5a8-773e-44e5-a491-57ef1f1b9226",
+          "id": "6fbae5a8-773e-44e5-a491-57ef1f1b9226",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1030,7 +1030,7 @@
               }
             }
           ],
-          "_postman_id": "f01e0c5f-34dd-446c-bdd2-166d4c9edccc",
+          "id": "f01e0c5f-34dd-446c-bdd2-166d4c9edccc",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1131,7 +1131,7 @@
               }
             }
           ],
-          "_postman_id": "85d981e2-943e-4115-95da-c69683145d71",
+          "id": "85d981e2-943e-4115-95da-c69683145d71",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -1207,7 +1207,7 @@
               }
             }
           ],
-          "_postman_id": "5b6a683f-730f-4d5b-b3b8-886179483a9a",
+          "id": "5b6a683f-730f-4d5b-b3b8-886179483a9a",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -1365,7 +1365,7 @@
               }
             }
           ],
-          "_postman_id": "3a7daa71-c228-49c0-87d9-a63063c42b00",
+          "id": "3a7daa71-c228-49c0-87d9-a63063c42b00",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1428,7 +1428,7 @@
               }
             }
           ],
-          "_postman_id": "f1c046da-2b3c-4c17-b570-4e719c074282",
+          "id": "f1c046da-2b3c-4c17-b570-4e719c074282",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1455,7 +1455,7 @@
           "response": []
         }
       ],
-      "_postman_id": "755f5e3c-f8e3-4b03-b2b3-eecee62d0eac",
+      "id": "755f5e3c-f8e3-4b03-b2b3-eecee62d0eac",
       "event": [
         {
           "listen": "prerequest",
@@ -1553,7 +1553,7 @@
               }
             }
           ],
-          "_postman_id": "d944a3b8-1dac-4a88-b98f-53fe5daada32",
+          "id": "d944a3b8-1dac-4a88-b98f-53fe5daada32",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1623,7 +1623,7 @@
               }
             }
           ],
-          "_postman_id": "c39de50f-63fc-40ef-ab40-f543955e4eca",
+          "id": "c39de50f-63fc-40ef-ab40-f543955e4eca",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -1724,7 +1724,7 @@
               }
             }
           ],
-          "_postman_id": "dca40a7c-6a96-49f7-a97a-ea72a014bd9e",
+          "id": "dca40a7c-6a96-49f7-a97a-ea72a014bd9e",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -1797,7 +1797,7 @@
               }
             }
           ],
-          "_postman_id": "c129d83f-43e0-47eb-a95c-6ec51d2ba86a",
+          "id": "c129d83f-43e0-47eb-a95c-6ec51d2ba86a",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -1873,7 +1873,7 @@
               }
             }
           ],
-          "_postman_id": "1d323678-6e85-414a-a29c-8dcd92ea0c65",
+          "id": "1d323678-6e85-414a-a29c-8dcd92ea0c65",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -1949,7 +1949,7 @@
               }
             }
           ],
-          "_postman_id": "55e1487c-5252-4687-a3bd-519e4138f996",
+          "id": "55e1487c-5252-4687-a3bd-519e4138f996",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -2107,7 +2107,7 @@
               }
             }
           ],
-          "_postman_id": "e7800de6-ad11-4917-9cac-2c4876123a71",
+          "id": "e7800de6-ad11-4917-9cac-2c4876123a71",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2170,7 +2170,7 @@
               }
             }
           ],
-          "_postman_id": "766b169b-95c4-4f11-af5e-e1a8eeebd815",
+          "id": "766b169b-95c4-4f11-af5e-e1a8eeebd815",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2197,7 +2197,7 @@
           "response": []
         }
       ],
-      "_postman_id": "5b9b53ba-0500-4a36-abf8-19729f628a5c",
+      "id": "5b9b53ba-0500-4a36-abf8-19729f628a5c",
       "event": [
         {
           "listen": "prerequest",
@@ -2387,7 +2387,7 @@
               }
             }
           ],
-          "_postman_id": "81fabf3d-bfd4-4f75-981e-a19843074edb",
+          "id": "81fabf3d-bfd4-4f75-981e-a19843074edb",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2459,7 +2459,7 @@
               }
             }
           ],
-          "_postman_id": "5603d417-6c41-4c62-93a3-b29bd1da81b0",
+          "id": "5603d417-6c41-4c62-93a3-b29bd1da81b0",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2491,7 +2491,7 @@
           "response": []
         }
       ],
-      "_postman_id": "9ab1ebda-d82a-4edf-9e38-4f4af22ab359"
+      "id": "9ab1ebda-d82a-4edf-9e38-4f4af22ab359"
     },
     {
       "name": "Authorize+Payment",
@@ -2531,7 +2531,7 @@
               }
             }
           ],
-          "_postman_id": "369277f9-093e-4e2c-8d7a-2a470cb5e4d5",
+          "id": "369277f9-093e-4e2c-8d7a-2a470cb5e4d5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2601,7 +2601,7 @@
               }
             }
           ],
-          "_postman_id": "fb7a71d4-a2b7-4956-8806-1448539de6d5",
+          "id": "fb7a71d4-a2b7-4956-8806-1448539de6d5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2702,7 +2702,7 @@
               }
             }
           ],
-          "_postman_id": "b848fb17-7c09-4fb8-a8e8-4bf79f17812e",
+          "id": "b848fb17-7c09-4fb8-a8e8-4bf79f17812e",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -2778,7 +2778,7 @@
               }
             }
           ],
-          "_postman_id": "54db76b9-fe60-4fbb-ab81-9a99741fea37",
+          "id": "54db76b9-fe60-4fbb-ab81-9a99741fea37",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -2844,7 +2844,7 @@
               }
             }
           ],
-          "_postman_id": "9293b77c-775d-40b8-98ff-007a2480508d",
+          "id": "9293b77c-775d-40b8-98ff-007a2480508d",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2871,7 +2871,7 @@
           "response": []
         }
       ],
-      "_postman_id": "b789f787-17f8-4fd8-97e3-118acceaafd0"
+      "id": "b789f787-17f8-4fd8-97e3-118acceaafd0"
     },
     {
       "name": "Authorize+Refund",
@@ -2910,7 +2910,7 @@
               }
             }
           ],
-          "_postman_id": "13cea6f5-1156-4c0c-b589-9af0078c41e0",
+          "id": "13cea6f5-1156-4c0c-b589-9af0078c41e0",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -2980,7 +2980,7 @@
               }
             }
           ],
-          "_postman_id": "ff54af25-26cc-4b58-a4ca-08beaddb3230",
+          "id": "ff54af25-26cc-4b58-a4ca-08beaddb3230",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
@@ -3081,7 +3081,7 @@
               }
             }
           ],
-          "_postman_id": "43fe4f63-e2fa-4d12-8aef-1e96a3870194",
+          "id": "43fe4f63-e2fa-4d12-8aef-1e96a3870194",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -3154,7 +3154,7 @@
               }
             }
           ],
-          "_postman_id": "61cc9095-8695-428f-a7d7-217e6a0612ac",
+          "id": "61cc9095-8695-428f-a7d7-217e6a0612ac",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -3230,7 +3230,7 @@
               }
             }
           ],
-          "_postman_id": "487dc18b-e803-4976-87e4-381f07e5e10a",
+          "id": "487dc18b-e803-4976-87e4-381f07e5e10a",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -3306,7 +3306,7 @@
               }
             }
           ],
-          "_postman_id": "f7633f8b-8487-4b16-8e50-ecd096ff2775",
+          "id": "f7633f8b-8487-4b16-8e50-ecd096ff2775",
           "protocolProfileBehavior": {
             "disabledSystemHeaders": {
               "content-type": true
@@ -3341,7 +3341,7 @@
           "response": []
         }
       ],
-      "_postman_id": "a56fb7af-cbc8-4d1d-a05c-02f4e5600ddd"
+      "id": "a56fb7af-cbc8-4d1d-a05c-02f4e5600ddd"
     }
   ],
   "event": [
@@ -3368,46 +3368,39 @@
   ],
   "variable": [
     {
-      "id": "c3043f20-0254-4114-b895-0aa07bfb54fc",
+      "id": "e55bdf1c-bb1f-4b21-bb53-23416f9a99b2",
       "key": "OrderNumber",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "f30ce215-3d69-4c50-95d5-3dabc644940d",
+      "id": "fc53aafe-f12e-4b17-9bef-328a69710d3a",
       "key": "TransactionID",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "e0b665ec-63b9-4688-80cf-942aa1fa3b25",
+      "id": "37e9ed46-9269-487b-b59a-8e0484ff2a6d",
       "key": "TxId",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "638be958-dc78-499c-934e-bc48548c7a2d",
+      "id": "786db44a-2f38-473d-a634-28e1207bdd43",
       "key": "Token",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "47a54c48-0a48-4819-a493-62befe91e2eb",
+      "id": "2122f89a-ede7-4f05-9f68-b4a2c5bf3ed7",
       "key": "MdStatus",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "b393ee71-5cec-459e-9c3e-3603ff054ecf",
+      "id": "13e013e7-4a21-4c45-8a05-abe50bc94b9f",
       "key": "PreviousTransactionID",
-      "value": "",
-      "type": "string"
+      "value": ""
     },
     {
-      "id": "a0d566d2-502a-477f-914f-0d0dda021c35",
+      "id": "d9a3185c-2e64-486a-8dba-ac1ddb8bb061",
       "key": "AuthorizeTransactionID",
-      "value": "",
-      "type": "string"
+      "value": ""
     }
   ]
 }
